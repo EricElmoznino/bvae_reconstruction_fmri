@@ -1,4 +1,5 @@
 import os
+import random
 import numpy as np
 import torch
 from torch.utils.data import Dataset
@@ -10,6 +11,7 @@ class ImageFilesDataset(Dataset):
 
     def __init__(self, image_paths, training=False, nc=3):
         super().__init__()
+        random.shuffle(image_paths)
         self.image_paths = image_paths
         self.nc = nc
         if training:
@@ -46,6 +48,7 @@ class NumpyImageDataset(Dataset):
     def __init__(self, data_path):
         super().__init__()
         data = np.load(data_path, encoding='bytes')['imgs']
+        np.random.shuffle(data)
         self.data = torch.from_numpy(data).unsqueeze(1).float()
         self.nc = 1
 
