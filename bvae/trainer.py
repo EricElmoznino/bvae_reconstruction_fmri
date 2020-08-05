@@ -153,9 +153,8 @@ def train(run_name, train_set, test_set,
 
 def loss_func(x, x_recon, mu, logvar, beta, decoder_distribution):
     if decoder_distribution == 'bernoulli':
-        recon_loss = F.cross_entropy(x_recon, x, reduction='sum') / x.size(0)
+        recon_loss = F.binary_cross_entropy(x_recon, x, reduction='sum') / x.size(0)
     elif decoder_distribution == 'gaussian':
-        x_recon = F.sigmoid(x_recon)
         recon_loss = F.mse_loss(x_recon, x, reduction='sum') / x.size(0)
     else:
         raise NotImplementedError('Unimplemented decoder distribution type: {}'.format(decoder_distribution))
