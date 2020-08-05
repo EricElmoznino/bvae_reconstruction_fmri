@@ -116,8 +116,8 @@ def train(run_name, train_set, test_set,
     # Save some sample images
     @train_engine.on(Events.EPOCH_COMPLETED)
     def log_sample_images(engine):
-        train_samples = torch.stack([train_set[i] for i in range(min(36, len(train_set)))])
-        test_samples = torch.stack([test_set[i] for i in range(min(36, len(train_set)))])
+        train_samples = torch.stack([train_set[i] for i in range(min(36, len(train_set)))]).to(device)
+        test_samples = torch.stack([test_set[i] for i in range(min(36, len(train_set)))]).to(device)
         with torch.no_grad():
             train_recon, _, _ = model(train_samples)
             test_recon, _, _ = model(test_samples)
