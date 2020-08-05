@@ -19,6 +19,6 @@ if __name__ == '__main__':
     test_set = NumpyImageDataset(args.data_path)
     test_set.data = test_set.data[:max(36, args.batch_size)]    # Mock test set just so that we can use the trainer code
 
-    model = BetaVAE(z_dim=args.z_dim, nc=1, decoder_distribution='bernoulli')
+    model = BetaVAE(z_dim=args.z_dim, nc=train_set.nc, decoder_distribution='bernoulli')
 
     train(args.run_name, train_set, test_set, args.n_iterations, args.batch_size, args.lr, args.beta, args.z_dim)

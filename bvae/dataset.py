@@ -27,12 +27,12 @@ class ImageFilesDataset(Dataset):
             ])
 
     def __getitem__(self, item):
-        image = Image.open(self.data[item])
+        image = Image.open(self.image_paths[item])
         image = self.transform(image)
         return image
 
     def __len__(self):
-        return len(self.data)
+        return len(self.image_paths)
 
 
 class ImageFolderDataset(ImageFilesDataset):
