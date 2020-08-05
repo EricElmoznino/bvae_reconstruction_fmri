@@ -46,7 +46,7 @@ class NumpyImageDataset(Dataset):
     def __init__(self, data_path):
         super().__init__()
         data = np.load(data_path, encoding='bytes')['imgs']
-        self.data = torch.from_numpy(data).unsqueeze(1).float() / 255
+        self.data = torch.from_numpy(data).unsqueeze(1).float()
         self.nc = 1
 
     def __getitem__(self, item):
