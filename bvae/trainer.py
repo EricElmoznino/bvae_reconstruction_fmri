@@ -42,6 +42,8 @@ def train(run_name, train_set, test_set,
     :param beta: Beta parameter for disentangling
     """
     # Make the run directory
+    if not os.path.exists('bvae/saved_runs'):
+        os.mkdir('bvae/saved_runs')
     save_dir = os.path.join('bvae/saved_runs', run_name)
     if run_name == 'debug':     # If we're debugging, just remove the old run without returning an error
         shutil.rmtree(save_dir, ignore_errors=True)
@@ -87,11 +89,11 @@ def train(run_name, train_set, test_set,
     Average(output_transform=lambda x: x['kl']).attach(test_engine, 'KL Divergence')
 
     # Progress bar displaying training loss and accuracy
-    ProgressBar(persist=True).attach(train_engine, metric_names=['beta_loss', 'recon_loss', 'kl'])
+    ProgressBar(persist=True).attach(train_engine, metric_names=['Beta Loss', 'Reconstruction Loss', 'KL Divergence'])
 
     # Model checkpointing (keep model with lowest test loss)
     checkpoint_handler = ModelCheckpoint(os.path.join(save_dir, 'checkpoints'), type(model).__name__,
-                                         score_function=lambda eng: -eng.state.metrics['beta_loss'])
+                                         score_function=lambda eng: -eng.state.metrics['Beta Loss'])
     test_engine.add_event_handler(event_name=Events.COMPLETED, handler=checkpoint_handler, to_save={'model': model})
 
     # Log training metrics to tensorboard every 100 batches
@@ -114,17 +116,17 @@ def train(run_name, train_set, test_set,
     # Save some sample images
     @train_engine.on(Events.EPOCH_COMPLETED)
     def log_sample_images(engine):
-        train_samples = torch.stack([img for img in train_set[:36]])
-        test_samples = torch.stack([img for img in test_set[:36]])
+        train_samples = torch.stack([train_set[i] for i in range(min(36, len(train_set)))])
+        test_samples = torch.stack([test_set[i] for i in range(min(36, len(train_set)))])
         with torch.no_grad():
             train_recon, _, _ = model(train_samples)
             test_recon, _, _ = model(test_samples)
         train_recon = train_recon.cpu()
         test_recon = test_recon.cpu()
-        writer.add_image('training/Original', make_grid(train_samples), engine.state.iteration)
-        writer.add_image('training/Reconstructed', make_grid(train_recon), engine.state.iteration)
-        writer.add_image('test/Original', make_grid(test_samples), engine.state.iteration)
-        writer.add_image('test/Reconstructed', make_grid(test_recon), engine.state.iteration)
+        writer.add_image('training/Original', make_grid(train_samples, nrow=6), engine.state.iteration)
+        writer.add_image('training/Reconstructed', make_grid(train_recon, nrow=6), engine.state.iteration)
+        writer.add_image('test/Original', make_grid(test_samples, nrow=6), engine.state.iteration)
+        writer.add_image('test/Reconstructed', make_grid(test_recon, nrow=6), engine.state.iteration)
 
 
     # Gracefully terminate on any exception, and simply end training + save the current model
@@ -142,7 +144,8 @@ def train(run_name, train_set, test_set,
 
     # Start off training and report total execution time when over
     start_time = time.time()
-    train_engine.run(train_loader, math.ceil(n_iterations / batch_size))
+    n_epochs = math.ceil(n_iterations / (len(train_set) / batch_size))
+    train_engine.run(train_loader, n_epochs)
     writer.close()
     end_time = time.time()
     print('Total training time: {}'.format(timedelta(seconds=end_time - start_time)))
@@ -159,7 +162,7 @@ def loss_func(x, x_recon, mu, logvar, beta, decoder_distribution):
 
     p = Normal(torch.zeros_like(mu), torch.ones_like(mu))
     q = Normal(mu, torch.exp(0.5 * logvar))
-    kl = kl_divergence(p, q).sum(dim=[1, 2, 3]).mean()
+    kl = kl_divergence(p, q).sum(dim=1).mean()
 
     beta_loss = recon_loss + beta * kl
 

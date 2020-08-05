@@ -54,3 +54,16 @@ class NumpyImageDataset(Dataset):
 
     def __len__(self):
         return self.data.size(0)
+
+
+class DebugDataset(Dataset):
+
+    def __init__(self):
+        super().__init__()
+        self.nc = 3
+
+    def __getitem__(self, item):
+        return torch.rand(3, 64, 64)
+
+    def __len__(self):
+        return 36

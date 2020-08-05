@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.nn.init as init
 
@@ -35,8 +36,8 @@ class BetaVAE(nn.Module):
             nn.ReLU(True),
             nn.ConvTranspose2d(32, 32, 4, 2, 1), # B,  32, 32, 32
             nn.ReLU(True),
-            nn.ConvTranspose2d(32, nc, 4, 2, 1),  # B, nc, 64, 64
-            nn.Sigmoid()
+            nn.ConvTranspose2d(32, nc, 4, 2, 1), # B, nc, 64, 64
+            Sigmoid()
         )
 
         self.weight_init()
@@ -57,7 +58,7 @@ class BetaVAE(nn.Module):
 
 def kaiming_init(m):
     if isinstance(m, (nn.Linear, nn.Conv2d)):
-        init.kaiming_normal(m.weight)
+        init.kaiming_normal_(m.weight)
         if m.bias is not None:
             m.bias.data.fill_(0)
     elif isinstance(m, (nn.BatchNorm1d, nn.BatchNorm2d)):
@@ -79,3 +80,8 @@ class View(nn.Module):
 
     def forward(self, tensor):
         return tensor.view(self.size)
+
+
+class Sigmoid(nn.Module):
+    def forward(self, tensor):
+        return torch.sigmoid(tensor)

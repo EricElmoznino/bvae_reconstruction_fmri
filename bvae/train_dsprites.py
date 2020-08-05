@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from bvae.trainer import train
 from bvae.model import BetaVAE
-from bvae.dataset import NumpyImageDataset
+from bvae.dataset import NumpyImageDataset, DebugDataset
 
 
 if __name__ == '__main__':
