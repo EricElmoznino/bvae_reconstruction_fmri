@@ -3,7 +3,8 @@ import random
 import os
 from bvae.trainer import train
 from bvae.model import BetaVAE
-from bvae.dataset import ImageFilesDataset
+from bvae.dataset import ImageFilesDataset, ImageFolderDataset
+from bvae import utils
 
 random.seed(27)
 
@@ -17,17 +18,20 @@ if __name__ == '__main__':
     parser.add_argument('--lr', type=float, default=1e-4, help='learning rate')
     parser.add_argument('--beta', type=float, default=4, help='beta parameter for B-VAE objective')
     parser.add_argument('--z_dim', type=int, default=10, help='latent dimensions')
-    parser.add_argument('--train_test_ratio', type=float, default=0.9, help='Ratio of train to test data for slitting')
+    parser.add_argument('--train_test_ratio', type=float, default=0.9,
+                        help='ratio of train to test data for splitting (if no train/test folders in data_dir)')
     args = parser.parse_args()
 
-    files = os.listdir(args.data_dir)
-    files = [os.path.join(args.data_dir, f) for f in files]
-    random.shuffle(files)
-    train_files = files[:int(args.train_test_ratio * len(files))]
-    test_files = files[int(args.train_test_ratio * len(files)):]
-
-    train_set = ImageFilesDataset(train_files, training=True)
-    test_set = ImageFilesDataset(test_files, training=False)
+    if os.path.exists(os.path.join(args.data_dir, 'train')):
+        train_set = ImageFolderDataset(os.path.join(args.data_dir, 'train'), training=True)
+        test_set = ImageFolderDataset(os.path.join(args.data_dir, 'test'), training=False)
+    else:
+        files = utils.recursive_folder_image_paths(args.data_dir)
+        random.shuffle(files)
+        train_files = files[:int(args.train_test_ratio * len(files))]
+        test_files = files[int(args.train_test_ratio * len(files)):]
+        train_set = ImageFilesDataset(train_files, training=True)
+        test_set = ImageFilesDataset(test_files, training=False)
 
     model = BetaVAE(z_dim=args.z_dim, nc=train_set.nc)
 

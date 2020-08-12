@@ -1,7 +1,20 @@
 import os
 import math
+import imghdr
 from PIL import Image, UnidentifiedImageError
+import torch
 from torchvision.transforms import functional as transforms
+from torchvision.utils import make_grid
+
+
+def recursive_folder_image_paths(folder_path):
+    file_paths = []
+    for dirpath, dirs, files in os.walk(folder_path):
+        for filename in files:
+            file_path = os.path.join(dirpath, filename)
+            if imghdr.what(file_path) is not None:
+                file_paths.append(file_path)
+    return file_paths
 
 
 def combine_image_folders(folder_paths, save_folder_path, resolution):
@@ -34,3 +47,37 @@ def resize_and_square_image(image, resolution):
     else:
         image = transforms.resize(image, resolution)
     return image
+
+
+def model_state_dict(run_name):
+    save_dir = os.path.join('bvae', 'saved_runs', run_name, 'checkpoints')
+    model_name = os.listdir(save_dir)[0]
+    save_path = os.path.join(save_dir, model_name)
+    state_dict = torch.load(save_path, map_location=lambda storage, loc: storage)
+    return state_dict
+
+
+def make_image_grid(image_tensors, pad=2):
+    assert 4 <= image_tensors.ndim <= 5
+    if image_tensors.ndim == 4:
+        grid = make_grid(image_tensors, nrow=1, padding=pad, pad_value=1)
+    else:
+        _, n_per_row, *img_shape = image_tensors.size()
+        image_tensors = image_tensors.view(-1, *img_shape)
+        grid = make_grid(image_tensors, nrow=n_per_row, padding=pad, pad_value=1)
+    grid = transforms.to_pil_image(grid)
+    return grid
+
+
+def concat_images(img1, img2, pad=2, vertical=False):
+    if vertical:
+        assert img1.width == img2.width
+        new_img = Image.new(img1.mode, (img1.width, img1.height + pad + img2.height), color=(255, 255, 255))
+        new_img.paste(img1, (0, 0))
+        new_img.paste(img2, (0, img1.height + pad))
+    else:
+        assert img1.height == img2.height
+        new_img = Image.new(img1.mode, (img1.width + pad + img2.width, img1.height), color=(255, 255, 255))
+        new_img.paste(img1, (0, 0))
+        new_img.paste(img2, (img1.width + pad, 0))
+    return new_img

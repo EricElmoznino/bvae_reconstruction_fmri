@@ -48,12 +48,23 @@ class BetaVAE(nn.Module):
                 kaiming_init(m)
 
     def forward(self, x):
+        z, mu, logvar = self.encode(x, sample=True)
+        x_recon = self.decode(z)
+        return x_recon, mu, logvar
+
+    def encode(self, x, sample=False):
         distributions = self.encoder(x)
         mu = distributions[:, :self.z_dim]
-        logvar = distributions[:, self.z_dim:]
-        z = reparametrize(mu, logvar)
+        if sample:
+            logvar = distributions[:, self.z_dim:]
+            z = reparametrize(mu, logvar)
+            return z, mu, logvar
+        else:
+            return mu
+
+    def decode(self, z):
         x_recon = self.decoder(z)
-        return x_recon, mu, logvar
+        return x_recon
 
 
 def kaiming_init(m):

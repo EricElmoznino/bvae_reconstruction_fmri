@@ -5,6 +5,7 @@ import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
 from PIL import Image
+from bvae import utils
 
 
 class ImageFilesDataset(Dataset):
@@ -38,8 +39,7 @@ class ImageFilesDataset(Dataset):
 class ImageFolderDataset(ImageFilesDataset):
 
     def __init__(self, image_dir, training=False, nc=3):
-        image_paths = os.listdir(image_dir)
-        image_paths = [os.path.join(image_dir, filename) for filename in image_paths]
+        image_paths = utils.recursive_folder_image_paths(image_dir)
         super().__init__(image_paths, training, nc)
 
 
