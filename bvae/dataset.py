@@ -29,6 +29,8 @@ class ImageFilesDataset(Dataset):
 
     def __getitem__(self, item):
         image = Image.open(self.image_paths[item])
+        if self.nc == 3:
+            image = image.convert('RGB')
         image = self.transform(image)
         return image
 
