@@ -4,7 +4,7 @@ import os
 from bvae.trainer import train
 from bvae.model import BetaVAE
 from bvae.dataset import ImageFilesDataset, ImageFolderDataset
-from bvae import utils
+import utils
 
 random.seed(27)
 

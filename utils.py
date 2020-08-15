@@ -5,6 +5,23 @@ from PIL import Image, UnidentifiedImageError
 import torch
 from torchvision.transforms import functional as transforms
 from torchvision.utils import make_grid
+from bvae.model import BetaVAE
+
+
+def listdir(dir, path=True):
+    files = os.listdir(dir)
+    files = [f for f in files if f != '.DS_Store']
+    if path:
+        files = [os.path.join(dir, f) for f in files]
+    return files
+
+
+def load_image(image_file, resolution=64):
+    image = Image.open(image_file).convert('RGB')
+    assert image.width == image.height
+    image = transforms.resize(image, resolution)
+    image = transforms.to_tensor(image)
+    return image
 
 
 def recursive_folder_image_paths(folder_path):
@@ -49,12 +66,15 @@ def resize_and_square_image(image, resolution):
     return image
 
 
-def model_state_dict(run_name):
+def load_bvae(run_name):
     save_dir = os.path.join('bvae', 'saved_runs', run_name, 'checkpoints')
     model_name = os.listdir(save_dir)[0]
     save_path = os.path.join(save_dir, model_name)
     state_dict = torch.load(save_path, map_location=lambda storage, loc: storage)
-    return state_dict
+    z_dim = state_dict['decoder.0.weight'].size(1)
+    model = BetaVAE(z_dim=z_dim)
+    model.load_state_dict(state_dict)
+    return model
 
 
 def make_image_grid(image_tensors, pad=2):

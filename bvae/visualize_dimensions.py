@@ -3,13 +3,11 @@ import shutil
 import os
 import random
 import torch
-from torchvision.transforms import functional as transforms
 from bvae.model import BetaVAE
 from bvae.dataset import ImageFilesDataset
-from bvae import utils
+import utils
 
-cuda = torch.cuda.is_available()
-device = torch.device('cuda:0' if cuda else 'cpu')
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 random.seed(27)
 
 
@@ -41,13 +39,17 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='Visualize the dimensions of a trained Beta-VAE')
     parser.add_argument('--run_name', required=True, type=str, help='run name of the trained model')
     parser.add_argument('--data_dir', required=True, type=str, help='path to data folder for seed images')
-    parser.add_argument('--z_dim', type=int, default=10, help='latent dimensions')
+    parser.add_argument('--save_dir', type=str, default=None,
+                        help='where to save results (if not specified, saves at bvae/saved_runs/[run_name]/dimensions/)')
     parser.add_argument('--n_seeds', type=int, default=10, help='how many seed images to slide dimensions for')
     parser.add_argument('--z_range', type=float, default=10, help='range in which to slide each dimension')
     parser.add_argument('--z_intervals', type=int, default=10, help='number of intervals in range')
     args = parser.parse_args()
 
-    save_dir = os.path.join('bvae', 'saved_runs', args.run_name, 'dimensions')
+    if args.save_dir is None:
+        save_dir = os.path.join('bvae', 'saved_runs', args.run_name, 'dimensions')
+    else:
+        save_dir = args.save_dir
     shutil.rmtree(save_dir, ignore_errors=True)
     os.mkdir(save_dir)
 
@@ -56,11 +58,7 @@ if __name__ == '__main__':
     files = files[:args.n_seeds]
     seed_set = ImageFilesDataset(files, training=False)
 
-    model = BetaVAE(z_dim=args.z_dim, nc=seed_set.nc).to(device)
-    model.load_state_dict(utils.model_state_dict(args.run_name))
-
-    if torch.cuda.is_available():
-        model.cuda()
+    model = utils.load_bvae(args.run_name).to(device)
 
     orig_images = []
     recon_interp_images = []
@@ -76,4 +74,4 @@ if __name__ == '__main__':
         dim_interp = recon_interp_images[z_dim]
         dim_interp = utils.make_image_grid(dim_interp)
         dim_interp = utils.concat_images(orig_images, dim_interp, pad=8)
-        dim_interp.save('{}/{}.jpg'.format(save_dir, z_dim))
+        dim_interp.save('{}/{}.jpg'.format(save_dir, z_dim + 1))

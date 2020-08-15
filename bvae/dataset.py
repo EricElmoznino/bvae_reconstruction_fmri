@@ -1,11 +1,10 @@
-import os
 import random
 import numpy as np
 import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
 from PIL import Image
-from bvae import utils
+import utils
 
 
 class ImageFilesDataset(Dataset):
