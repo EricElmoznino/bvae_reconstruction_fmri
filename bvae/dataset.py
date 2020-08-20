@@ -17,8 +17,6 @@ class ImageFilesDataset(Dataset):
         self.image_paths = image_paths
 
         transform = [transforms.Resize((64, 64))]
-        if grayscale:
-            transform.append(transforms.Grayscale())
         if training:
             transform.append(transforms.RandomHorizontalFlip())
         transform.append(transforms.ToTensor())
@@ -28,6 +26,7 @@ class ImageFilesDataset(Dataset):
 
     def __getitem__(self, item):
         image = Image.open(self.image_paths[item])
+        image = image.convert('L') if self.nc == 1 else image.convert('RGB')
         image = self.transform(image)
         return image
 

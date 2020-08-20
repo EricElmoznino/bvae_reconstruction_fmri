@@ -21,8 +21,8 @@ if __name__ == '__main__':
     parser.add_argument('--train_test_ratio', type=float, default=0.9,
                         help='ratio of train to test data for splitting (if no train/test folders in data_dir)')
     parser.add_argument('--grayscale', action='store_true', help='whether or not to use grayscale images')
-    parser.add_argument('--early_stopping', type=int, default=-1, help='stop training early if test loss converges '
-                                                                      'over past n epochs (-1 for no early stopping)')
+    parser.add_argument('--early_stopping', type=int, default=10, help='stop training early if test loss converges '
+                                                                       'over past n epochs (-1 for no early stopping)')
     args = parser.parse_args()
     early_stopping = None if args.early_stopping == -1 else args.early_stopping
 
