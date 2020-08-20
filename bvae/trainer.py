@@ -96,8 +96,8 @@ def train(run_name, train_set, test_set,
                                          score_function=lambda eng: -eng.state.metrics['Beta Loss'])
     test_engine.add_event_handler(event_name=Events.COMPLETED, handler=checkpoint_handler, to_save={'model': model})
 
-    # Early stopping if the test set loss does not decrease over 5 epochs
-    early_stop_handler = EarlyStopping(patience=5, trainer=train_engine,
+    # Early stopping if the test set loss does not decrease over 10 epochs
+    early_stop_handler = EarlyStopping(patience=10, trainer=train_engine,
                                        score_function=lambda eng: -eng.state.metrics['Beta Loss'])
     test_engine.add_event_handler(Events.COMPLETED, early_stop_handler)
 
