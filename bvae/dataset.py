@@ -9,11 +9,11 @@ import utils
 
 class ImageFilesDataset(Dataset):
 
-    def __init__(self, image_paths, training=False, nc=3):
+    def __init__(self, image_paths, training=False):
         super().__init__()
+        assert len(image_paths) > 0
         random.shuffle(image_paths)
         self.image_paths = image_paths
-        self.nc = nc
         if training:
             self.transform = transforms.Compose([
                 transforms.Resize((64, 64)),
@@ -25,11 +25,10 @@ class ImageFilesDataset(Dataset):
                 transforms.Resize((64, 64)),
                 transforms.ToTensor()
             ])
+        self.nc = self[0].size(0)
 
     def __getitem__(self, item):
         image = Image.open(self.image_paths[item])
-        if self.nc == 3:
-            image = image.convert('RGB')
         image = self.transform(image)
         return image
 
@@ -39,9 +38,9 @@ class ImageFilesDataset(Dataset):
 
 class ImageFolderDataset(ImageFilesDataset):
 
-    def __init__(self, image_dir, training=False, nc=3):
+    def __init__(self, image_dir, training=False):
         image_paths = utils.recursive_folder_image_paths(image_dir)
-        super().__init__(image_paths, training, nc)
+        super().__init__(image_paths, training)
 
 
 class NumpyImageDataset(Dataset):
@@ -49,9 +48,13 @@ class NumpyImageDataset(Dataset):
     def __init__(self, data_path):
         super().__init__()
         data = np.load(data_path, encoding='bytes')['imgs']
+        assert len(data) > 0
         np.random.shuffle(data)
-        self.data = torch.from_numpy(data).unsqueeze(1).float()
-        self.nc = 1
+        data = torch.from_numpy(data).float()
+        if data.ndim == 2:
+            data = data.unsqueeze(0)
+        self.data = data
+        self.nc = data.size(0)
 
     def __getitem__(self, item):
         return self.data[item]

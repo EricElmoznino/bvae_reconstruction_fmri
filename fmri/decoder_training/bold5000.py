@@ -4,7 +4,7 @@ import random
 import numpy as np
 from tqdm import tqdm
 import torch
-from fmri.fmri_decoder import fMRIDecoder
+from fmri.decoder_training.fmri_decoder import fMRIDecoder
 from fmri.decoder_training.regression import cv_regression
 from fmri.decoder_training.plotting import plot_r
 import utils
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     weights, cv_rs = cv_regression(x=voxels, y=latents, n_splits=5, l2=args.l2)
     print('Mean correlation (r) over cross-validated folds\nTraining: {:.4g}\nTest: {:.4g}'
           .format(np.mean(cv_rs['train']), np.mean(cv_rs['test'])))
-    plot_r(cv_rs, os.path.join('fmri/saved_runs', args.run_name + '_r.jpg'))
+    plot_r(cv_rs, os.path.join('fmri/decoder_training/saved_runs', args.run_name + '_r.jpg'))
 
     fmri_decoder = fMRIDecoder(bvae.decoder, weights)
-    torch.save(fmri_decoder, os.path.join('fmri/saved_runs', args.run_name + '.pth'))
+    torch.save(fmri_decoder, os.path.join('fmri/decoder_training/saved_runs', args.run_name + '.pth'))

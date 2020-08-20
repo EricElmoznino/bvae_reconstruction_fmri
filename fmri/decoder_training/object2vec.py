@@ -4,7 +4,7 @@ import numpy as np
 import scipy.io
 from tqdm import tqdm
 import torch
-from fmri.fmri_decoder import fMRIDecoder
+from fmri.decoder_training.fmri_decoder import fMRIDecoder
 from fmri.decoder_training.regression import cv_regression
 from fmri.decoder_training.plotting import plot_r
 import utils
@@ -65,4 +65,4 @@ if __name__ == '__main__':
     plot_r(cv_rs, os.path.join('fmri/saved_runs', args.run_name + '_r.jpg'))
 
     fmri_decoder = fMRIDecoder(bvae.decoder, weights)
-    torch.save(fmri_decoder, os.path.join('fmri/saved_runs', args.run_name + '.pth'))
+    torch.save(fmri_decoder, os.path.join('fmri/decoder_training/saved_runs', args.run_name + '.pth'))
