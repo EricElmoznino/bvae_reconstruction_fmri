@@ -12,7 +12,7 @@ from tensorboardX import SummaryWriter
 from torchvision.utils import make_grid
 from ignite.contrib.handlers import ProgressBar
 from ignite.engine import Engine, Events
-from ignite.handlers import ModelCheckpoint
+from ignite.handlers import ModelCheckpoint, EarlyStopping
 from ignite.metrics import RunningAverage, Average
 from bvae.model import BetaVAE
 
@@ -95,6 +95,11 @@ def train(run_name, train_set, test_set,
     checkpoint_handler = ModelCheckpoint(os.path.join(save_dir, 'checkpoints'), type(model).__name__,
                                          score_function=lambda eng: -eng.state.metrics['Beta Loss'])
     test_engine.add_event_handler(event_name=Events.COMPLETED, handler=checkpoint_handler, to_save={'model': model})
+
+    # Early stopping if the test set loss does not decrease over 5 epochs
+    early_stop_handler = EarlyStopping(patience=5, trainer=train_engine,
+                                       score_function=lambda eng: -eng.state.metrics['Loss'])
+    test_engine.add_event_handler(Events.COMPLETED, early_stop_handler)
 
     # Log training metrics to tensorboard every 100 batches
     @train_engine.on(Events.ITERATION_COMPLETED(every=100))
