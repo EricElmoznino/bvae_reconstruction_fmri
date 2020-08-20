@@ -37,9 +37,9 @@ class ImageFilesDataset(Dataset):
 
 class ImageFolderDataset(ImageFilesDataset):
 
-    def __init__(self, image_dir, training=False):
+    def __init__(self, image_dir, grayscale=False, training=False):
         image_paths = utils.recursive_folder_image_paths(image_dir)
-        super().__init__(image_paths, training)
+        super().__init__(image_paths, grayscale, training)
 
 
 class NumpyImageDataset(Dataset):

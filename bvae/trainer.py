@@ -24,7 +24,8 @@ if cuda: torch.cuda.manual_seed(27)
 
 
 def train(run_name, train_set, test_set,
-          n_iterations, batch_size, lr, beta, z_dim):
+          n_iterations, batch_size, lr, early_stopping,
+          beta, z_dim):
     """
     This generically handles the training loop for all models and datasets. It uses
     the Ignite package in order to simplify this process and add useful features.
@@ -96,10 +97,11 @@ def train(run_name, train_set, test_set,
                                          score_function=lambda eng: -eng.state.metrics['Beta Loss'])
     test_engine.add_event_handler(event_name=Events.COMPLETED, handler=checkpoint_handler, to_save={'model': model})
 
-    # Early stopping if the test set loss does not decrease over 10 epochs
-    early_stop_handler = EarlyStopping(patience=10, trainer=train_engine,
-                                       score_function=lambda eng: -eng.state.metrics['Beta Loss'])
-    test_engine.add_event_handler(Events.COMPLETED, early_stop_handler)
+    # Early stopping if the test set loss does not decrease over n epochs
+    if early_stopping is not None:
+        early_stop_handler = EarlyStopping(patience=early_stopping, trainer=train_engine,
+                                           score_function=lambda eng: -eng.state.metrics['Beta Loss'])
+        test_engine.add_event_handler(Events.COMPLETED, early_stop_handler)
 
     # Log training metrics to tensorboard every 100 batches
     @train_engine.on(Events.ITERATION_COMPLETED(every=100))
