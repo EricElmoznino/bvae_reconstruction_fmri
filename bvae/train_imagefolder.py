@@ -20,6 +20,7 @@ if __name__ == '__main__':
     parser.add_argument('--z_dim', type=int, default=10, help='latent dimensions')
     parser.add_argument('--train_test_ratio', type=float, default=0.9,
                         help='ratio of train to test data for splitting (if no train/test folders in data_dir)')
+    parser.add_argument('--grayscale', action='store_true', help='whether or not to use grayscale images')
     args = parser.parse_args()
 
     if os.path.exists(os.path.join(args.data_dir, 'train')):

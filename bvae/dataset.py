@@ -9,23 +9,22 @@ import utils
 
 class ImageFilesDataset(Dataset):
 
-    def __init__(self, image_paths, training=False):
+    def __init__(self, image_paths, grayscale=False, training=False):
         super().__init__()
+
         assert len(image_paths) > 0
         random.shuffle(image_paths)
         self.image_paths = image_paths
+
+        transform = [transforms.Resize((64, 64))]
+        if grayscale:
+            transform.append(transforms.Grayscale())
         if training:
-            self.transform = transforms.Compose([
-                transforms.Resize((64, 64)),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor()
-            ])
-        else:
-            self.transform = transforms.Compose([
-                transforms.Resize((64, 64)),
-                transforms.ToTensor()
-            ])
-        self.nc = self[0].size(0)
+            transform.append(transforms.RandomHorizontalFlip())
+        transform.append(transforms.ToTensor())
+        self.transform = transforms.Compose(transform)
+
+        self.nc = 1 if grayscale else 3
 
     def __getitem__(self, item):
         image = Image.open(self.image_paths[item])
