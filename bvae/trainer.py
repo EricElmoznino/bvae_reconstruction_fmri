@@ -98,7 +98,7 @@ def train(run_name, train_set, test_set,
 
     # Early stopping if the test set loss does not decrease over 5 epochs
     early_stop_handler = EarlyStopping(patience=5, trainer=train_engine,
-                                       score_function=lambda eng: -eng.state.metrics['Loss'])
+                                       score_function=lambda eng: -eng.state.metrics['Beta Loss'])
     test_engine.add_event_handler(Events.COMPLETED, early_stop_handler)
 
     # Log training metrics to tensorboard every 100 batches
