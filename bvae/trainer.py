@@ -138,7 +138,7 @@ def train(run_name, train_set, test_set,
         if isinstance(e, KeyboardInterrupt) and (engine.state.iteration > 1):
             import warnings
             warnings.warn('KeyboardInterrupt caught. Exiting gracefully.')
-            checkpoint_handler(engine, {'model_exception': model})
+            checkpoint_handler(test_engine, {'model_exception': model})
         else:
             raise e
 
