@@ -104,7 +104,7 @@ def train(run_name, train_set, test_set,
         test_engine.add_event_handler(Events.COMPLETED, early_stop_handler)
 
     # Log training metrics to tensorboard every 100 batches
-    @train_engine.on(Events.ITERATION_COMPLETED(every=100))
+    @train_engine.on(Events.ITERATION_COMPLETED(every=1000))
     def log_training_metrics(engine):
         for metric, value in engine.state.metrics.items():
             writer.add_scalar('training/{}'.format(metric), value, engine.state.iteration)
@@ -120,9 +120,19 @@ def train(run_name, train_set, test_set,
         print(' '.join(results))
 
 
-    # Save some sample images
+    # Save some sample images (only when test loss decreases)
+    lowest_loss = None
     @train_engine.on(Events.EPOCH_COMPLETED)
     def log_sample_images(engine):
+        global lowest_loss
+        if lowest_loss is None:
+            lowest_loss = test_engine.state.metrics['Beta Loss']
+        if lowest_loss < test_engine.state.metrics['Beta Loss']:
+            return
+        else:
+            lowest_loss = test_engine.state.metrics['Beta Loss']
+
+        lowest_loss = test_engine.state.metrics['Beta Loss']
         train_samples = torch.stack([train_set[i] for i in range(min(36, len(train_set)))]).to(device)
         test_samples = torch.stack([test_set[i] for i in range(min(36, len(train_set)))]).to(device)
         with torch.no_grad():
