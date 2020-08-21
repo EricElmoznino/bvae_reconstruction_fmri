@@ -22,6 +22,8 @@ random.seed(27)
 torch.manual_seed(27)
 if cuda: torch.cuda.manual_seed(27)
 
+lowest_loss = None
+
 
 def train(run_name, train_set, test_set,
           n_iterations, batch_size, lr, early_stopping,
@@ -121,13 +123,10 @@ def train(run_name, train_set, test_set,
 
 
     # Save some sample images (only when test loss decreases)
-    lowest_loss = None
     @train_engine.on(Events.EPOCH_COMPLETED)
     def log_sample_images(engine):
         global lowest_loss
-        if lowest_loss is None:
-            lowest_loss = test_engine.state.metrics['Beta Loss']
-        if lowest_loss < test_engine.state.metrics['Beta Loss']:
+        if lowest_loss is None or lowest_loss < test_engine.state.metrics['Beta Loss']:
             return
         else:
             lowest_loss = test_engine.state.metrics['Beta Loss']
