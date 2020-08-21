@@ -123,13 +123,6 @@ def train(run_name, train_set, test_set,
     # Save some sample images
     @train_engine.on(Events.ITERATION_COMPLETED(every=10000))
     def log_sample_images(engine):
-        global lowest_loss
-        if lowest_loss is not None and lowest_loss < test_engine.state.metrics['Beta Loss']:
-            return
-        else:
-            lowest_loss = test_engine.state.metrics['Beta Loss']
-
-        lowest_loss = test_engine.state.metrics['Beta Loss']
         train_samples = torch.stack([train_set[i] for i in range(min(36, len(train_set)))]).to(device)
         test_samples = torch.stack([test_set[i] for i in range(min(36, len(train_set)))]).to(device)
         with torch.no_grad():
