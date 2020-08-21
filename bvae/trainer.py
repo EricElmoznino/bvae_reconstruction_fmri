@@ -22,8 +22,6 @@ random.seed(27)
 torch.manual_seed(27)
 if cuda: torch.cuda.manual_seed(27)
 
-lowest_loss = None
-
 
 def train(run_name, train_set, test_set,
           n_iterations, batch_size, lr, early_stopping,
@@ -122,11 +120,11 @@ def train(run_name, train_set, test_set,
         print(' '.join(results))
 
 
-    # Save some sample images (only when test loss decreases)
-    @train_engine.on(Events.EPOCH_COMPLETED)
+    # Save some sample images
+    @train_engine.on(Events.ITERATION_COMPLETED(every=10000))
     def log_sample_images(engine):
         global lowest_loss
-        if lowest_loss is None or lowest_loss < test_engine.state.metrics['Beta Loss']:
+        if lowest_loss is not None and lowest_loss < test_engine.state.metrics['Beta Loss']:
             return
         else:
             lowest_loss = test_engine.state.metrics['Beta Loss']
@@ -143,7 +141,6 @@ def train(run_name, train_set, test_set,
         writer.add_image('training/Reconstructed', make_grid(train_recon, nrow=6), engine.state.iteration)
         writer.add_image('test/Original', make_grid(test_samples, nrow=6), engine.state.iteration)
         writer.add_image('test/Reconstructed', make_grid(test_recon, nrow=6), engine.state.iteration)
-
 
     # Gracefully terminate on any exception, and simply end training + save the current model
     # if we are manually stopping with a keyboard interrupt (e.g. model was converging)
